@@ -80,30 +80,57 @@ function Controller() {
     const mainContentPane = $('#main-content-pane');
     const titleDiv = $('#title');
     const creditsDiv = $('#credits');
-    const windowWidth = $(window).width(); const windowHeight = $(window).height();
-    let staticVerticalSpace = (titleDiv.outerHeight(true) || 0) + (creditsDiv.outerHeight(true) || 0) + 20;
-    let availableHeightForFlexItems = windowHeight - staticVerticalSpace;
-    let availableWidthForFlexItems = windowWidth - 10; 
-    let boardSize; const minBoardSize = 280; const maxBoardSize = 700; 
-    const minMainContentWidth = 320; const moveControlsHeight = $('#move-controls').outerHeight(true) || 60;
-    const stackingThreshold = minBoardSize + minMainContentWidth + 30; 
+    const windowWidth = $(window).width(); 
+    const windowHeight = $(window).height();
 
-    if (windowWidth < stackingThreshold || availableHeightForFlexItems < minBoardSize + 100) { 
+    let staticVerticalSpace = (titleDiv.outerHeight(true) || 0) + (creditsDiv.outerHeight(true) || 0) + 20; 
+    let availableHeightForLayout = windowHeight - staticVerticalSpace;
+    let availableWidthForLayout = windowWidth - 10; 
+
+    let boardSize; 
+    const minBoardSize = 250; 
+    const maxBoardSize = Math.min(700, availableWidthForLayout, availableHeightForLayout * 0.8); 
+
+    const minMainContentWidth = 280; 
+    const moveControlsHeight = $('#move-controls').outerHeight(true) || 60;
+
+    const stackingThresholdWidth = minBoardSize + minMainContentWidth + 30; 
+    const stackingThresholdHeight = minBoardSize + 150; 
+
+    if (windowWidth < stackingThresholdWidth || availableHeightForLayout < stackingThresholdHeight) { 
         layoutWrapper.removeClass('layout-side-by-side').addClass('layout-stacked');
-        let widthForBoard = availableWidthForFlexItems * 0.95; 
+        
+        let widthForBoard = availableWidthForLayout * 0.95; 
         boardSize = Math.min(widthForBoard, maxBoardSize);
-        boardSize = Math.min(boardSize, availableHeightForFlexItems - moveControlsHeight - 50); 
+        boardSize = Math.min(boardSize, availableHeightForLayout - moveControlsHeight - 80); 
+
+        boardArea.css('width', '100%'); 
+        mainContentPane.css('width', '95%'); 
+        mainContentPane.css('max-width', '600px'); 
+        mainContentPane.css('flex-grow', '0'); 
+        mainContentPane.css('height', 'auto');
+
     } else { 
         layoutWrapper.removeClass('layout-stacked').addClass('layout-side-by-side');
-        let heightForBoard = availableHeightForFlexItems - moveControlsHeight;
-        let widthForBoard = availableWidthForFlexItems - minMainContentWidth - 10; 
+        
+        let heightForBoard = availableHeightForLayout - moveControlsHeight;
+        let widthForBoard = availableWidthForLayout - minMainContentWidth - 20; 
         boardSize = Math.min(widthForBoard, heightForBoard);
+
+        boardArea.css('width', boardSize + 'px'); 
+        mainContentPane.css('width', ''); 
+        mainContentPane.css('max-width', '');
+        mainContentPane.css('flex-grow', '1');
+        mainContentPane.css('height', ''); 
     }
+
     boardSize = Math.max(minBoardSize, Math.min(boardSize, maxBoardSize));
+
     boardContainer.css({width: boardSize + 'px', height: boardSize + 'px'});
-    if (layoutWrapper.hasClass('layout-side-by-side')) { boardArea.css('width', boardSize + 'px'); } 
-    else { boardArea.css('width', '100%'); }
-    self.board.resize(); BoardAnnotations.resizeArrowCanvas(self); self.redrawCurrentArrows();
+    
+    self.board.resize(); 
+    BoardAnnotations.resizeArrowCanvas(self); 
+    self.redrawCurrentArrows();
   };
 
   $(window).on('resize', self.adjustBoardLayout);
@@ -124,11 +151,20 @@ function Controller() {
   $('#navBckBtn').on('click', function() { NavigationControl.navigateBack(self); });
   $('#navFwdBtn').on('click', function() { NavigationControl.navigateForward(self); });
   $('#navEndBtn').on('click', function() { NavigationControl.navigateEnd(self); });
+  
+  // PGN Input Button Handlers
+  $('#pastePgnBtn').on('click', function() { UserInteraction.pasteAndAnalyzePgnFromClipboard(self); }); // New button
   $('#analyzePgnTextBtn').on('click', function() { UserInteraction.analyzePgnFromText(self); });
+
   $('#applyParams').on('click', function() { UserInteraction.applyParams(self); });
   $('#logs').change(function() { UIManager.displayLogChanged(self); }); 
   UserInteraction.populateNetworks(self); 
   $('#applyNetwork').on('click', function() { UserInteraction.applyNetwork(self); });
+  $('#restartEngineBtn').on('click', function() { 
+      UserInteraction.showError(self, "Restarting engine..."); 
+      setTimeout(() => UserInteraction.hideError(), 2000); 
+      EngineCommunication.createEngine(self); 
+  });
   $('#playWhiteBtn').on('click', function() { PlayModeController.playWhite(self); BoardAnnotations.clearArrows(self); self.playerMoveEvalData = null;});
   $('#playBlackBtn').on('click', function() { PlayModeController.playBlack(self); BoardAnnotations.clearArrows(self); self.playerMoveEvalData = null;});
   $('#takebackBtn').on('click', function() { 
@@ -139,11 +175,6 @@ function Controller() {
   $('#resignBtn').on('click', function() { PlayModeController.resign(self); BoardAnnotations.clearArrows(self); self.playerMoveEvalData = null;});
   $('#goBtn').on('click', function() { BoardAnnotations.clearArrows(self); self.playerMoveEvalData = null; SearchManager.startMainAnalysis(self); }); 
   $('#stopBtn').on('click', function() { SearchManager.stop(self); });
-  $('#restartEngineBtn').on('click', function() { // Added Restart Engine Button Handler
-      UserInteraction.showError(self, "Restarting engine..."); // Optional: provide feedback
-      setTimeout(() => UserInteraction.hideError(), 2000); // Hide message after a bit
-      EngineCommunication.createEngine(self); 
-  });
   $('#toggleParamsBtn').on('click', function() {
     const paramsSection = $('#parameters-section');
     if (paramsSection.is(':visible')) { paramsSection.slideUp(); $(this).text('Show Parameters'); } 

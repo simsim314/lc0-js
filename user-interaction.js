@@ -91,10 +91,34 @@ const UserInteraction = {
     $('#trackedPlayerInput').val(controller.trackedPlayerName); 
 
     if (pgnText === '') {
-        UserInteraction.showError(controller, "PGN text area is empty.");
+        UserInteraction.showError(controller, "PGN text area is empty. Nothing to analyze.");
         return;
     }
     UserInteraction.processPgnString(controller, pgnText);
+  },
+
+  pasteAndAnalyzePgnFromClipboard: async function(controller) {
+    try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+            UserInteraction.showError(controller, "Clipboard API not available or permission denied. Please paste manually.");
+            $('#pgnTextInput').focus(); // Focus the textarea for manual paste
+            return;
+        }
+        const text = await navigator.clipboard.readText();
+        if (text && text.trim() !== '') {
+            $('#pgnTextInput').val(text);
+            UserInteraction.showError(controller, "PGN pasted from clipboard. Analyzing..."); // Temporary message
+            setTimeout(() => UserInteraction.hideError(), 2000);
+            UserInteraction.analyzePgnFromText(controller); // Now analyze it
+        } else {
+            UserInteraction.showError(controller, "Clipboard is empty or contains no text.");
+            $('#pgnTextInput').focus();
+        }
+    } catch (err) {
+        console.error('Failed to read clipboard contents: ', err);
+        UserInteraction.showError(controller, "Failed to paste from clipboard. Check permissions or paste manually.");
+        $('#pgnTextInput').focus();
+    }
   },
 
   processPgnString: function(controller, pgnString) {
@@ -102,16 +126,16 @@ const UserInteraction = {
         UserInteraction.showError(controller, "Empty PGN string provided.");
         return;
     }
-    BoardAnnotations.clearArrows(controller); // Clear arrows before loading new PGN
-    controller.analysisCache = {}; // Clear analysis cache for new PGN
-    controller.fenUnderAnalysisP0 = null; // Corrected property name
+    BoardAnnotations.clearArrows(controller); 
+    controller.analysisCache = {}; 
+    controller.fenUnderAnalysisP0 = null;
 
 
     var loaded = controller.game.load_pgn(pgnString, {sloppy: true});
 
     if (!loaded) {
-      UserInteraction.showError(controller, "Failed to load PGN. Ensure it's valid.");
-      GameStateCore.startpos(controller); 
+      UserInteraction.showError(controller, "Failed to load PGN. Ensure it's valid. Check PGN format.");
+      // GameStateCore.startpos(controller); // Don't reset to startpos, let user correct PGN
       $('#trackedPlayerStatus').text(''); 
       return;
     }
@@ -147,7 +171,11 @@ const UserInteraction = {
         } else if (blackPlayer.toLowerCase() === trackedLower) {
             trackedPlayerMessage = `${controller.trackedPlayerName} is Black.`;
             boardOrientation = 'black';
-        } else if (!whitePlayer && !blackPlayer) {
+        } else if (!whitePlayer && !blackPlayer && controller.trackedPlayerName) {
+             // Tracked player name given, but PGN has no player names
+            trackedPlayerMessage = `PGN has no player names. Assuming ${controller.trackedPlayerName} is White.`;
+            boardOrientation = 'white'; // Default to white if PGN names are missing but tracking is active
+        } else if (!whitePlayer && !blackPlayer && !controller.trackedPlayerName) {
             trackedPlayerMessage = "PGN missing player names. Displaying White's perspective.";
         }
     } else {
@@ -156,9 +184,9 @@ const UserInteraction = {
 
     $('#trackedPlayerStatus').text(trackedPlayerMessage);
     controller.board.orientation(boardOrientation);
-    controller.currentBoardOrientation = boardOrientation; // CRITICAL: Update controller's tracking
+    controller.currentBoardOrientation = boardOrientation; 
 
-    NavigationControl.navigateBegin(controller); // This will call triggerAnalysisForCurrentPosition
+    NavigationControl.navigateBegin(controller); 
   },
 
   engineError: function(controller, e) {

@@ -7,7 +7,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; 
+  overflow: hidden; /* Primary viewport does not scroll */
   font-size: 16px; 
 }
 
@@ -16,7 +16,7 @@ body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   display: flex;
   flex-direction: column; 
-  height: 100vh; 
+  height: 100vh; /* Full viewport height */
 }
 
 #title {
@@ -34,17 +34,18 @@ body {
     display: flex;
     flex-grow: 1; 
     padding: 5px;
-    overflow: hidden; 
+    overflow: hidden; /* Children will handle their own scrolling or this will scroll if stacked */
 }
 
 #layout-wrapper.layout-side-by-side {
     flex-direction: row;
+    overflow-y: hidden; /* Prevent vertical scroll in side-by-side mode for the wrapper */
 }
 
 #layout-wrapper.layout-stacked {
     flex-direction: column;
-    align-items: center; /* Center board area when stacked */
-    overflow-y: auto; 
+    align-items: center; /* Center board area and main content pane when stacked */
+    overflow-y: auto; /* Enable vertical scrolling for the entire stacked content if it overflows */
 }
 
 
@@ -92,7 +93,7 @@ body {
 
 
 #main-content-pane {
-  flex-grow: 1; 
+  flex-grow: 1; /* Allows it to take space in side-by-side */
   min-width: 300px; 
   display: flex;
   flex-direction: column;
@@ -100,22 +101,25 @@ body {
   background-color: #f8f8f8; 
   border: 1px solid #ddd;
   border-radius: 4px;
-  overflow: hidden; 
+  overflow: visible; /* Change from hidden to allow child elements to control their scroll or content flow */
 }
+
 #layout-wrapper.layout-stacked #main-content-pane {
     width: 95%; /* Take most of width when stacked */
     max-width: 600px; /* But not too wide */
-    height: auto; 
-    max-height: calc(100vh - 280px); /* Adjust based on typical board size */
-    overflow-y: auto; 
+    height: auto; /* Height is determined by its content */
+    flex-grow: 0; /* Do not try to grow to fill remaining vertical space in stack, content dictates height */
+    flex-shrink: 0; /* Do not shrink if content is larger */
+    /* max-height removed, parent #layout-wrapper.layout-stacked handles overall scroll */
+    /* overflow-y: auto; -> individual components like #variations already have this */
 }
 
 
 #info-analysis-panel {
     display: flex;
     flex-direction: column; 
-    flex-grow: 1; /* This panel should take up most space in main-content-pane */
-    overflow: hidden; 
+    flex-grow: 1; /* This panel should take up most space in main-content-pane (in side-by-side) */
+    overflow: hidden; /* Keep this to allow internal scrolling components to work within its bounds */
     padding: 5px;
 }
 
@@ -145,7 +149,7 @@ body {
     flex-direction: column;
     flex-grow: 3; /* Give analysis more growth priority */
     min-height: 100px; /* Ensure it has some space */
-    overflow: hidden;
+    overflow: hidden; /* Contains #variations which scrolls */
 }
 #movelist-container {
     margin-bottom: 10px;
@@ -156,8 +160,8 @@ body {
     flex-direction: column;
     flex-grow: 1; /* Movelist grows less than analysis */
     min-height: 70px;
-    max-height: 150px; /* Limit movelist height */
-    overflow: hidden;
+    max-height: 150px; /* Limit movelist height, it will scroll internally */
+    overflow: hidden; /* Contains #movelist which scrolls */
 }
 
 #movelist-container h4, #analysis-container h4 {
@@ -185,13 +189,17 @@ body {
 }
 
 #pgn-input-area {
-    flex-shrink: 0;
+    flex-shrink: 0; /* Does not grow or shrink, fixed part of main-content-pane */
     padding: 10px 5px;
     border-top: 1px solid #ddd;
-    margin-top: auto; /* Try to push to bottom of its flex container section if space available */
+    margin-top: auto; /* Pushes to bottom if #info-analysis-panel doesn't fill #main-content-pane */
 }
 #pgn-input-area textarea {
-    rows: 2; 
+    /* rows: 2; attribute in HTML */
+    width: 98%; 
+    box-sizing: border-box; /* Ensure padding/border doesn't make it overflow */
+    margin-top: 2px; 
+    font-family: monospace;
 }
 
 
@@ -215,8 +223,8 @@ body {
   font-family: 'Lucida Console', Monaco, monospace;
   font-size: 0.8em;
   box-sizing: border-box;
-  min-height: 3em;  /* Reduced height */
-  max-height: 6em; /* Reduced max height */
+  min-height: 3em;
+  max-height: 6em;
   overflow-y: auto;
   flex-shrink: 0; 
 }
@@ -237,9 +245,8 @@ body {
     border-top: 1px solid #ddd;
     font-size: 0.8em;
     overflow-y: auto; 
-    max-height: 25vh; /* Limit height, but allow more if needed */
-    /* display: none; */ /* Will be toggled by JS */
-    background-color: #f0f0f0; /* Slightly different background */
+    max-height: 25vh; 
+    background-color: #f0f0f0;
 }
 #parameters-section h4 {
     margin-top: 0;
@@ -272,7 +279,7 @@ body {
   font-size: 0.7em;
   width: 100%;
   text-align: center;
-  margin-top: auto; 
+  margin-top: auto; /* Pushes to bottom of body flex container */
   padding: 5px;
   box-sizing: border-box;
   flex-shrink: 0;
@@ -287,28 +294,28 @@ body {
 .close-button:hover { background-color: gray; }
 .show-modal { opacity: 1; visibility: visible; transform: scale(1); transition: visibility 0s linear 0s,opacity .15s 0s,transform .15s; }
 
+/* Media query for very narrow screens, already partially handled by JS */
 @media (max-width: 768px) { 
-  #layout-wrapper {
-    /* Already defaults to stacked by JS if narrow, or force here */
-    /* flex-direction: column;  */
-  }
+  /* JS primarily handles layout switching, these are fallbacks or refinements */
+  /* #layout-wrapper { flex-direction: column; align-items: center; overflow-y: auto; } */
+  
   #board-area {
-      align-items: center; 
-      width: 100%; 
+      /* width: 100%; JS sets this in stacked mode */
   }
-  #boardContainer {
-    width: 90vw; 
-    height: 90vw; 
-    max-width: 90vw; 
-    max-height: 90vw;
+  #boardContainer { /* Ensure board is responsive within its area */
+    width: 90vw; /* Example: take 90% of viewport width */
+    height: 90vw; /* Maintain aspect ratio */
+    max-width: 400px; /* Max size on small screens, can be adjusted by JS */
+    max-height: 400px; /* Max size on small screens, can be adjusted by JS */
   }
   #main-content-pane {
-    width: calc(100% - 10px); 
-    max-height: none; /* Allow more flexible height on small screens */
-    overflow-y: auto; 
+    width: calc(100% - 10px); /* Almost full width */
+    min-width: 0; /* Override desktop min-width */
+    /* height: auto; JS sets this */
+    /* max-height: none; Allow flexible height, parent scrolls */
+    /* overflow-y: auto; For internal scrolling if needed beyond parent scroll */
   }
   #info-analysis-panel {
-      max-height: none; /* Allow to grow */
+      /* max-height: none; Allow to grow */
   }
 }
-
