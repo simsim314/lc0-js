@@ -1,0 +1,314 @@
+/*
+ This file is part of Leela Chess Zero.
+ Copyright (C) 2018 The LCZero Authors
+*/
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; 
+  font-size: 16px; 
+}
+
+body {
+  background-color: #f0f0f0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column; 
+  height: 100vh; 
+}
+
+#title {
+  padding: 5px;
+  font-size: 1.5em; 
+  font-weight: bold;
+  font-family: 'Sedgwick Ave', cursive;
+  text-align: center;
+  flex-shrink: 0; 
+  background-color: #e9e9e9; 
+  border-bottom: 1px solid #ccc;
+}
+
+#layout-wrapper {
+    display: flex;
+    flex-grow: 1; 
+    padding: 5px;
+    overflow: hidden; 
+}
+
+#layout-wrapper.layout-side-by-side {
+    flex-direction: row;
+}
+
+#layout-wrapper.layout-stacked {
+    flex-direction: column;
+    align-items: center; /* Center board area when stacked */
+    overflow-y: auto; 
+}
+
+
+#board-area {
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: flex-start; 
+    margin: 5px;
+    flex-shrink: 0; 
+}
+
+#boardContainer {
+  position: relative; 
+  border: 2px solid #404040; 
+  box-sizing: content-box; 
+  /* Width and height set by JS */
+}
+
+#board { 
+  width: 100%; 
+  height: 100%; 
+}
+
+#arrowCanvas {
+  position: absolute;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  pointer-events: none; 
+  z-index: 10; 
+}
+
+#move-controls { 
+    margin-top: 5px;
+    text-align: center; 
+    width: 100%; 
+    flex-shrink: 0;
+}
+#move-controls button {
+    margin: 2px 4px;
+    padding: 0.3em 0.8em;
+}
+
+
+#main-content-pane {
+  flex-grow: 1; 
+  min-width: 300px; 
+  display: flex;
+  flex-direction: column;
+  margin: 5px;
+  background-color: #f8f8f8; 
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden; 
+}
+#layout-wrapper.layout-stacked #main-content-pane {
+    width: 95%; /* Take most of width when stacked */
+    max-width: 600px; /* But not too wide */
+    height: auto; 
+    max-height: calc(100vh - 280px); /* Adjust based on typical board size */
+    overflow-y: auto; 
+}
+
+
+#info-analysis-panel {
+    display: flex;
+    flex-direction: column; 
+    flex-grow: 1; /* This panel should take up most space in main-content-pane */
+    overflow: hidden; 
+    padding: 5px;
+}
+
+/* Status banners moved to bottom of main content pane */
+#status-banners-bottom {
+    flex-shrink: 0;
+    padding: 5px;
+    border-top: 1px solid #eee;
+    margin-top: 5px;
+}
+#status, #trackedPlayerStatus {
+  margin: 0 0 5px 0; /* Only bottom margin */
+  padding: 2px 4px;
+  font-size: 0.85em; 
+  min-height: 1.2em; 
+}
+#trackedPlayerStatus {
+  font-weight: bold;
+}
+
+#analysis-container { /* Analysis comes first now */
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    padding: 5px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 3; /* Give analysis more growth priority */
+    min-height: 100px; /* Ensure it has some space */
+    overflow: hidden;
+}
+#movelist-container {
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    padding: 5px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Movelist grows less than analysis */
+    min-height: 70px;
+    max-height: 150px; /* Limit movelist height */
+    overflow: hidden;
+}
+
+#movelist-container h4, #analysis-container h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #333;
+}
+
+#movelist { 
+  font-size: 0.8em;
+  overflow-y: auto;  
+  flex-grow: 1; /* Movelist div itself should grow to fill its container */
+}
+
+#analysis-container #eval, #analysis-container #evalinfo {
+    flex-shrink: 0; 
+    padding-bottom: 5px;
+    font-size: 0.9em;
+}
+#analysis-container #variations {
+  padding: 5px 0px; 
+  overflow-y: auto; 
+  flex-grow: 1; /* Variations div takes remaining space in analysis-container */
+}
+
+#pgn-input-area {
+    flex-shrink: 0;
+    padding: 10px 5px;
+    border-top: 1px solid #ddd;
+    margin-top: auto; /* Try to push to bottom of its flex container section if space available */
+}
+#pgn-input-area textarea {
+    rows: 2; 
+}
+
+
+#mode-and-play-controls {
+    flex-shrink: 0;
+    text-align: center; 
+    padding: 5px 0;
+    border-top: 1px solid #ddd;
+}
+#mode-and-play-controls .buttons { 
+    display: inline-block; 
+    margin-bottom: 5px;
+}
+
+#output { /* Engine Log */
+  width: calc(100% - 10px); 
+  background-color: #e0e0e0; 
+  margin: 5px;
+  padding: 5px;
+  color: black;
+  font-family: 'Lucida Console', Monaco, monospace;
+  font-size: 0.8em;
+  box-sizing: border-box;
+  min-height: 3em;  /* Reduced height */
+  max-height: 6em; /* Reduced max height */
+  overflow-y: auto;
+  flex-shrink: 0; 
+}
+
+#parameters-toggle-area {
+    text-align: center;
+    padding: 5px;
+    flex-shrink: 0;
+}
+#toggleParamsBtn {
+    padding: 3px 10px;
+    font-size: 0.8em;
+}
+
+#parameters-section {
+    flex-shrink: 0;
+    padding: 10px 5px;
+    border-top: 1px solid #ddd;
+    font-size: 0.8em;
+    overflow-y: auto; 
+    max-height: 25vh; /* Limit height, but allow more if needed */
+    /* display: none; */ /* Will be toggled by JS */
+    background-color: #f0f0f0; /* Slightly different background */
+}
+#parameters-section h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #333;
+}
+#parameters-section fieldset {
+  margin-bottom: 10px;
+}
+
+
+#error {
+  font-weight: bold;
+  font-size: 1em;
+  display: none;
+  background-color: #D00000;
+  color: white;
+  width: 100%;
+  padding: 1em 1.2em;
+  margin: 0.5em 0;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+#error-content { float: left; }
+#error-cross { float: right; }
+
+
+#credits {
+  font-size: 0.7em;
+  width: 100%;
+  text-align: center;
+  margin-top: auto; 
+  padding: 5px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  border-top: 1px solid #ccc;
+  background-color: #e9e9e9;
+}
+
+.modal { position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.2); opacity: 0; visibility: hidden; transform: scale(1.1); transition: visibility 0s linear .15s,opacity .15s 0s,transform .15s; z-index:1000; }
+.modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background-color: #fff; padding: 8px; width: 400px; border-radius: 8px; }
+.modal-content h1,.modal-content h2,.modal-content h3 { text-align: center; }
+.close-button { float: right; width: 24px; line-height: 24px; text-align: center; cursor: pointer; border-radius: 4px; background-color: #d3d3d3; }
+.close-button:hover { background-color: gray; }
+.show-modal { opacity: 1; visibility: visible; transform: scale(1); transition: visibility 0s linear 0s,opacity .15s 0s,transform .15s; }
+
+@media (max-width: 768px) { 
+  #layout-wrapper {
+    /* Already defaults to stacked by JS if narrow, or force here */
+    /* flex-direction: column;  */
+  }
+  #board-area {
+      align-items: center; 
+      width: 100%; 
+  }
+  #boardContainer {
+    width: 90vw; 
+    height: 90vw; 
+    max-width: 90vw; 
+    max-height: 90vw;
+  }
+  #main-content-pane {
+    width: calc(100% - 10px); 
+    max-height: none; /* Allow more flexible height on small screens */
+    overflow-y: auto; 
+  }
+  #info-analysis-panel {
+      max-height: none; /* Allow to grow */
+  }
+}
+

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>LCZero for the web</title>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+  <link rel="stylesheet" type="text/css" href="engine.css"/>
+  <link rel="stylesheet" type="text/css" href="chessboard-0.3.0.css"/>
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Sedgwick+Ave"/>
+  <link rel="icon" type="image/png" href="favicon_32.png">
+</head>
+<body>
+
+<div id="title">LCZero for the web</div>
+
+<div id="layout-wrapper"> 
+    <div id="board-area">
+        <div id="boardContainer">
+          <div id="board"></div>
+          <canvas id="arrowCanvas"></canvas>
+        </div>
+        <div id="move-controls" class="buttons">
+            <button id="startBtn">New game</button>
+            <button id="flipBtn">Flip board</button>
+            <button id="navBegBtn">◀◀</button>
+            <button id="navBckBtn">◀</button>
+            <button id="navFwdBtn">▶</button>
+            <button id="navEndBtn">▶▶</button>
+        </div>
+    </div>
+
+    <div id="main-content-pane"> 
+        <div id="info-analysis-panel">
+            <div id="analysis-container">
+                <h4>Analysis</h4>
+                <div id="eval"></div>
+                <div id="evalinfo"></div>
+                <div id="variations"></div>
+            </div>
+            <div id="movelist-container">
+                <h4>History</h4>
+                <div id="movelist"></div>
+            </div>
+        </div>
+        
+        <div id="pgn-input-area">
+            <div>
+              <label for="pgnTextInput" style="font-weight: normal;">Paste PGN:</label><br>
+              <textarea id="pgnTextInput" rows="2" style="width: 98%; margin-top: 2px; font-family: monospace;"></textarea>
+            </div>
+            <div style="margin-top: 5px;">
+              <label for="trackedPlayerInput" style="font-weight: normal;">Tracked Player Name:</label>
+              <input type="text" id="trackedPlayerInput" value="simsim314" style="margin-left: 5px; width: 150px;">
+            </div>
+            <button id="analyzePgnTextBtn" style="margin-top: 8px;">Analyze PGN from Text</button>
+        </div>
+
+        <div id="mode-and-play-controls">
+            <div class="buttons">
+                <label><input type="radio" name="mode" value="play"> Play </label>
+                <button id="playWhiteBtn">White</button>
+                <button id="playBlackBtn">Black</button>
+                <button id="takebackBtn" disabled>Takeback</button>
+                <button id="resignBtn">Resign</button>
+            </div>
+            <div class="buttons">
+                <label><input type="radio" name="mode" value="analysis" checked> Analysis </label>
+                <button id="goBtn">Go</button> 
+                <button id="stopBtn">Stop</button>
+                <button id="restartEngineBtn" style="margin-left: 10px;">Restart Engine</button> 
+            </div>
+        </div>
+
+        <div id="status-banners-bottom">
+            <div id="trackedPlayerStatus"></div> 
+            <div id="status"></div>
+        </div>
+        
+        <textarea id="output" rows="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly="true"></textarea>
+
+        <div id="parameters-toggle-area">
+            <button id="toggleParamsBtn" class="control-button">Show Parameters</button>
+        </div>
+        <div id="parameters-section" style="display: none;"> 
+            <h4>Parameters</h4>
+            <fieldset>
+              <legend>Network</legend>
+              <select id="network"></select>
+              <button class="applyButton" id="applyNetwork">Restart</button>
+            </fieldset>
+            <fieldset>
+              <legend>Play strength</legend>
+              <table>
+              <tr><td><label><input type="radio" name="go" value="movetime">go movetime</label></td>
+                  <td><input id="gomovetime" type="number" min="1" step="1" max="1000000" value="5000"></td>
+                  <td><label>(milliseconds)</label></td></tr>
+              <tr><td><label><input type="radio" name="go" value="nodes" checked>go nodes</label></td>
+                  <td><input id="gonodes" type="number" min="1" step="1" max="1000000" value="50"></td>
+                  <td><label>(nodes)</label></td></tr>
+              </table>
+              <button class="applyButton" id="applyParams">Apply</button>
+            </fieldset>
+            <input type="checkbox" id="logs" name="logs" checked>
+            <label for="logs">Display engine logs</label>
+        </div>
+    </div>
+</div>
+
+
+<div id="error">
+<div id="error-content"></div>
+<div id="error-cross">×</div>
+</div>
+
+<div id="popup" class="modal">
+ <div class="modal-content">
+   <span class="close-button">×</span>
+   <h2></h2>
+   <h3></h3>
+ </div>
+</div>
+
+<div id="credits">
+<p>
+<a href="https://github.com/frpays/lc0-js/">Lc0-js</a> by The LCZero Authors.
+JavaScript chessboard powered by <a href="http://chessboardjs.com/">chessboard.js</a> and <a href="https://github.com/jhlywa/chess.js">chess.js</a>.
+Neural network accelerated by <a href="https://js.tensorflow.org/">tensorflowjs</a>.
+</p>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js"></script>
+<script src="chessboard-0.3.0.js"></script>
+<script src="lc0_loader.js"></script>
+<script src="constants.js"></script>
+<script src="board-annotations.js"></script>
+<script src="ui-management.js"></script>
+<script src="status-display.js"></script>
+<script src="game-state-core.js"></script>
+<script src="game-results.js"></script>
+<script src="navigation-control.js"></script>
+<script src="engine-communication.js"></script>
+<script src="search-management.js"></script>
+<script src="play-mode-controller.js"></script> 
+<script src="user-interaction.js"></script>
+<script src="controller-main.js"></script>
+
+</body>
+</html>
